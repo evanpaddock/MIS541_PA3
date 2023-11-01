@@ -5,8 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 cars_df = pd.read_csv("./cars_pa3.txt", sep="#")
-reviews_df = pd.read_csv("./reviews_pa3.txt", sep="\t")
-
+reviews_df = pd.read_csv("./reviews_pa3.txt", sep="\t", index_col='serial_no')
 
 def extract_year(date_str):
     date_object = datetime.strptime(date_str, "%m-%d-%Y")
@@ -28,11 +27,11 @@ reviews_df["year"] = reviews_df["date"].apply(extract_year)
 reviews_df["month"] = reviews_df["date"].apply(extract_month)
 reviews_df["word_count"] = reviews_df["comment"].apply(extract_word_count)
 
-print("Average Rating: ")
-print(reviews_df["rating"].describe(), end="\n\n")
+#! print("Average Rating: ")
+#! print(reviews_df["rating"].describe(), end="\n\n")
 
-print("Average Word Count: ")
-print(reviews_df["word_count"].describe())
+#! print("Average Word Count: ")
+#! print(reviews_df["word_count"].describe())
 
 
 # extract_ratingCountSeries(rating_Series)
@@ -65,7 +64,7 @@ df_pivot = (
     .astype("int")
 )
 
-print(df_pivot)
+# print(df_pivot)
 
 # plt.hist(df_pivot)
 # plt.title("Number of Ratings by Year")
@@ -73,7 +72,7 @@ print(df_pivot)
 # plt.xticks([1.0, 2.0, 3.0, 4.0, 5.0])
 # plt.ylabel("Counts")
 # plt.yticks([0, 1, 2, 3, 4, 5])
-# plt.show()
+#! plt.show()
 
 df_pivot.plot(kind="bar", legend=True)
 
@@ -88,4 +87,16 @@ plt.legend(title="Year")
 plt.title("Number of Rating by Year")
 
 # Show the plot
+#! plt.show()
+
+avgword_count_by_year = reviews_df.groupby('year')['word_count'].mean()
+avgword_count_by_year = avgword_count_by_year.to_frame()
+avgword_count_by_year.columns = ['avg_word_count']
+
+plt.figure()
+plt.hist(avgword_count_by_year, bins=10)
+plt.title('Average Word Count by Year')
+plt.xlabel('Year')
+plt.ylabel('Word Count')
+plt.xticks(rotation=360)
 plt.show()
