@@ -38,7 +38,20 @@ def merge_dfs(left_df: pd.DataFrame, right_df: pd.DataFrame):
     return merged_df
 
 
-def get_ticks(min, max, step: float):
+def get_ticks(df: pd.DataFrame, step: float, min_0: bool = True):
+    has_count = df.columns.__contains__("count")
+
+    if has_count:
+        min = df["count"].min()
+        max = df["count"].max()
+
+    else:
+        min = df.values.min()
+        max = df.values.max()
+
+    if min_0:
+        min = 0
+
     return np.arange(min, max + (step * 2), step)
 
 
@@ -67,6 +80,29 @@ def get_columns(list_of_items: list, list_of_items_to_add: list):
             year_season.append(f"20{item_to_add}{season_to_month[item]}")
 
     return seasonname_year, year_season
+
+
+def add_season_year_col(row):
+    month_to_season = {
+        1: "Winter",
+        2: "Winter",
+        3: "Winter",
+        4: "Winter",
+        5: "Summer",
+        6: "Summer",
+        7: "Summer",
+        8: "Summer",
+        9: "Fall",
+        10: "Fall",
+        11: "Fall",
+        12: "Fall",
+    }
+
+    season = month_to_season[row["month"]]
+    year = str(int(row["year"]))
+    seasonname_year = f"{season} {year[2:]}"
+
+    return seasonname_year
 
 
 # !Read in files to dfs
@@ -103,7 +139,7 @@ df_2019_2020_2021_rating_counts.columns = ["count_2019", "count_2020", "count_20
 
 df_2019_2020_2021_rating_counts.plot(kind="bar")
 
-y_ticks = get_ticks(0, 4, 1)
+y_ticks = get_ticks(df_2019_2020_2021_rating_counts, 1, True)
 
 plt.title("Number of Ratings by Year")
 plt.xlabel("Rating")
@@ -118,7 +154,7 @@ avg_word_count_year_df.columns = ["avg_word_count"]
 
 print(avg_word_count_year_df, end="\n\n")
 
-y_ticks = get_ticks(0, 5, 0.5)
+y_ticks = get_ticks(avg_word_count_year_df, 0.5, True)
 
 avg_word_count_year_df.plot(kind="bar")
 plt.legend()
@@ -148,29 +184,6 @@ year_month_rating_counts = pd.DataFrame(
 ).reset_index()
 
 
-def add_season_year_col(row):
-    month_to_season = {
-        1: "Winter",
-        2: "Winter",
-        3: "Winter",
-        4: "Winter",
-        5: "Summer",
-        6: "Summer",
-        7: "Summer",
-        8: "Summer",
-        9: "Fall",
-        10: "Fall",
-        11: "Fall",
-        12: "Fall",
-    }
-
-    season = month_to_season[row["month"]]
-    year = str(int(row["year"]))
-    seasonname_year = f"{season} {year[2:]}"
-
-    return seasonname_year
-
-
 year_month_rating_counts["seasonname_year"] = year_month_rating_counts.apply(
     add_season_year_col, axis=1
 )
@@ -183,7 +196,7 @@ rating_count_by_season_year_df = (
         how="left",
     )
     .drop(["year", "month", "rating"], axis=1, inplace=False)
-    .replace(np.NaN, 0)
+    .fillna(0)
 )
 
 rating_count_by_season_year_df = (
@@ -203,12 +216,14 @@ rating_count_by_season_year_df = rating_count_by_season_year_df.sort_values(
     "year_season"
 )
 
-y_ticks = get_ticks(0, 4, 1)
+y_ticks = get_ticks(rating_count_by_season_year_df, 1, True)
+
 rating_count_by_season_year_df.plot(kind="line")
+plt.title("Number of Reviews by Season and Year")
 plt.legend(loc="upper right")
 plt.xlabel("Year Season")
 plt.xticks(rotation=30)
 plt.ylabel("Count")
 plt.yticks(y_ticks)
-plt.title("Number of Reviews by Season and Year")
-plt.show()
+
+# !AVERAGE YEARLY RATINGS DISTRIBUTION BY CAR
