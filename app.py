@@ -138,8 +138,61 @@ reviews_df = reviews_df[reviews_df["word_count"] != 0]
 
 year_month_rating_counts = pd.DataFrame(
     reviews_df.groupby(["year", "month"])["rating"].value_counts()
+).reset_index()
+
+
+def add_season_year_col(row):
+    month_to_season = {
+        1: "Winter",
+        2: "Winter",
+        3: "Winter",
+        4: "Winter",
+        5: "Summer",
+        6: "Summer",
+        7: "Summer",
+        8: "Summer",
+        9: "Fall",
+        10: "Fall",
+        11: "Fall",
+        12: "Fall",
+    }
+
+    season = month_to_season[row["month"]]
+    year = str(int(row["year"]))
+    seasonname_year = f"{season} {year[2:]}"
+
+    return seasonname_year
+
+
+year_month_rating_counts["seasonname_year"] = year_month_rating_counts.apply(
+    add_season_year_col, axis=1
 )
 
+rating_count_by_season_year_df = (
+    pd.merge(
+        rating_count_by_season_year_df,
+        year_month_rating_counts,
+        on="seasonname_year",
+        how="left",
+    )
+    .drop(["year", "month", "rating"], axis=1, inplace=False)
+    .replace(np.NaN, 0)
+)
 
-print(year_month_rating_counts)
+rating_count_by_season_year_df = (
+    pd.DataFrame(
+        rating_count_by_season_year_df.groupby(["seasonname_year", "year_season"])[
+            "count"
+        ].sum()
+    )
+    .reset_index()
+    .set_index("seasonname_year")
+)
+
+rating_count_by_season_year_df["count"] = rating_count_by_season_year_df["count"].apply(
+    lambda x: int(x)
+)
+rating_count_by_season_year_df = rating_count_by_season_year_df.sort_values('year_season')
 print(rating_count_by_season_year_df)
+rating_count_by_season_year_df.plot(kind="line")
+# plt.show()
