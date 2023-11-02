@@ -38,27 +38,35 @@ def merge_dfs(left_df: pd.DataFrame, right_df: pd.DataFrame):
     return merged_df
 
 
-def get_ticks(dataframe: pd.DataFrame, step: float, min_0: bool = True):
-    if min_0:
-        min = 0
-    else:
-        min = dataframe.values.min()
-    max = dataframe.values.max()
+def get_ticks(min, max, step: float):
     return np.arange(min, max + (step * 2), step)
 
 
-def get_column(
-    list_of_items: list, list_of_items_to_add: list, add_space: bool = False
-):
-    combo_items = []
-    for item in list_of_items:
-        for i in list_of_items_to_add:
-            if add_space:
-                combo_items.append(f"{item} {i}")
-            else:
-                combo_items.append(f"{item}{i}")
+def get_columns(list_of_items: list, list_of_items_to_add: list):
+    seasonname_year = []
+    year_season = []
 
-    return combo_items
+    season_to_month = {
+        "Winter": 1,
+        "Winter": 1,
+        "Winter": 1,
+        "Winter": 1,
+        "Summer": 2,
+        "Summer": 2,
+        "Summer": 2,
+        "Summer": 2,
+        "Fall": 3,
+        "Fall": 3,
+        "Fall": 3,
+        "Fall": 3,
+    }
+
+    for item in list_of_items:
+        for item_to_add in list_of_items_to_add:
+            seasonname_year.append(f"{item} {item_to_add}")
+            year_season.append(f"20{item_to_add}{season_to_month[item]}")
+
+    return seasonname_year, year_season
 
 
 # !Read in files to dfs
@@ -95,7 +103,7 @@ df_2019_2020_2021_rating_counts.columns = ["count_2019", "count_2020", "count_20
 
 df_2019_2020_2021_rating_counts.plot(kind="bar")
 
-y_ticks = get_ticks(df_2019_2020_2021_rating_counts, 1)
+y_ticks = get_ticks(0, 4, 1)
 
 plt.title("Number of Ratings by Year")
 plt.xlabel("Rating")
@@ -110,7 +118,7 @@ avg_word_count_year_df.columns = ["avg_word_count"]
 
 print(avg_word_count_year_df, end="\n\n")
 
-y_ticks = get_ticks(avg_word_count_year_df, 0.5)
+y_ticks = get_ticks(0, 5, 0.5)
 
 avg_word_count_year_df.plot(kind="bar")
 plt.legend()
@@ -123,8 +131,7 @@ plt.yticks(y_ticks)
 
 # !RATINGS COUNT DISTRIBUTION BY SEASONS AND YEARS
 
-seasonname_year = get_column(["Winter", "Summer", "Fall"], [19, 20, 21], add_space=True)
-year_season = get_column(["2019", "2020", "2021"], [1, 2, 3])
+seasonname_year, year_season = get_columns(["Winter", "Summer", "Fall"], [19, 20, 21])
 
 rating_count_by_season_year_df = pd.DataFrame(
     {
@@ -192,7 +199,16 @@ rating_count_by_season_year_df = (
 rating_count_by_season_year_df["count"] = rating_count_by_season_year_df["count"].apply(
     lambda x: int(x)
 )
-rating_count_by_season_year_df = rating_count_by_season_year_df.sort_values('year_season')
-print(rating_count_by_season_year_df)
+rating_count_by_season_year_df = rating_count_by_season_year_df.sort_values(
+    "year_season"
+)
+
+y_ticks = get_ticks(0, 4, 1)
 rating_count_by_season_year_df.plot(kind="line")
-# plt.show()
+plt.legend(loc="upper right")
+plt.xlabel("Year Season")
+plt.xticks(rotation=30)
+plt.ylabel("Count")
+plt.yticks(y_ticks)
+plt.title("Number of Reviews by Season and Year")
+plt.show()
