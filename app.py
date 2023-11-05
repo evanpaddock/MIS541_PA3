@@ -38,21 +38,16 @@ def merge_dfs(left_df: pd.DataFrame, right_df: pd.DataFrame):
     return merged_df
 
 
-def get_ticks(df: pd.DataFrame, step: float, min_0: bool = True):
-    has_count = df.columns.__contains__("count")
+def get_ticks(step: float, y_values: list, min_0: bool = True):
+    y_values = list(np.array(y_values).flat)
 
-    if has_count:
-        min = df["count"].min()
-        max = df["count"].max()
-
-    else:
-        min = df.values.min()
-        max = df.values.max()
+    y_min = min(y_values)
+    y_max = max(y_values)
 
     if min_0:
-        min = 0
+        y_min = 0
 
-    return np.arange(min, max + (step * 2), step)
+    return np.arange(y_min, y_max + (step * 2), step)
 
 
 def get_columns(list_of_items: list, list_of_items_to_add: list):
@@ -131,6 +126,7 @@ count_2020 = get_count_rating_by_year(2020)
 count_2021 = get_count_rating_by_year(2021)
 
 df_2019_2020_rating_counts = merge_dfs(count_2019, count_2020)
+
 df_2019_2020_2021_rating_counts = merge_dfs(df_2019_2020_rating_counts, count_2021)
 
 df_2019_2020_2021_rating_counts = df_2019_2020_2021_rating_counts.sort_index()
@@ -139,7 +135,7 @@ df_2019_2020_2021_rating_counts.columns = ["count_2019", "count_2020", "count_20
 
 df_2019_2020_2021_rating_counts.plot(kind="bar")
 
-y_ticks = get_ticks(df_2019_2020_2021_rating_counts, 1, True)
+y_ticks = get_ticks(1, df_2019_2020_2021_rating_counts.values, min_0=True)
 
 plt.title("Number of Ratings by Year")
 plt.xlabel("Rating")
@@ -154,7 +150,8 @@ avg_word_count_year_df.columns = ["avg_word_count"]
 
 print(avg_word_count_year_df, end="\n\n")
 
-y_ticks = get_ticks(avg_word_count_year_df, 0.5, True)
+
+y_ticks = get_ticks(0.5, avg_word_count_year_df["avg_word_count"].values, True)
 
 avg_word_count_year_df.plot(kind="bar")
 plt.legend()
@@ -212,11 +209,14 @@ rating_count_by_season_year_df = (
 rating_count_by_season_year_df["count"] = rating_count_by_season_year_df["count"].apply(
     lambda x: int(x)
 )
+
 rating_count_by_season_year_df = rating_count_by_season_year_df.sort_values(
     "year_season"
 )
 
-y_ticks = get_ticks(rating_count_by_season_year_df, 1, True)
+print(rating_count_by_season_year_df, end="\n\n")
+
+y_ticks = get_ticks(1, rating_count_by_season_year_df["count"].values, True)
 
 rating_count_by_season_year_df.plot(kind="line")
 plt.title("Number of Reviews by Season and Year")
@@ -227,3 +227,31 @@ plt.ylabel("Count")
 plt.yticks(y_ticks)
 
 # !AVERAGE YEARLY RATINGS DISTRIBUTION BY CAR
+
+cars_reviews_df = pd.merge(cars_df, reviews_df, how="outer")
+
+cars_reviews_df = cars_reviews_df.dropna(how="any").drop(
+    cars_reviews_df[cars_reviews_df["word_count"] == 0].index
+)
+
+make_year_ratings_df = pd.DataFrame(
+    cars_reviews_df.groupby(["year", "make"])["rating"].mean()
+).reset_index()
+
+
+make_year_ratings_pivot = make_year_ratings_df.pivot(
+    index="year", columns="make", values="rating"
+)
+
+print(make_year_ratings_pivot)
+
+y_ticks = get_ticks(1, make_year_ratings_pivot.values, True)
+
+make_year_ratings_pivot.plot(kind="bar")
+plt.legend(loc="upper left")
+plt.title("Average Yearly Rating by Car Make")
+plt.xlabel("Year")
+plt.xticks(rotation=360)
+plt.ylabel("Average Rating")
+plt.yticks(y_ticks)
+plt.show()
