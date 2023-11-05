@@ -31,7 +31,7 @@ def get_count_rating_by_year(year: pd.DataFrame):
     return count_year_df
 
 
-def merge_dfs(left_df: pd.DataFrame, right_df: pd.DataFrame):
+def merge_on_rating(left_df: pd.DataFrame, right_df: pd.DataFrame):
     merged_df = (
         pd.merge(left_df, right_df, on="rating", how="outer").fillna(0).astype(int)
     )
@@ -125,9 +125,11 @@ count_2019 = get_count_rating_by_year(2019)
 count_2020 = get_count_rating_by_year(2020)
 count_2021 = get_count_rating_by_year(2021)
 
-df_2019_2020_rating_counts = merge_dfs(count_2019, count_2020)
+df_2019_2020_rating_counts = merge_on_rating(count_2019, count_2020)
 
-df_2019_2020_2021_rating_counts = merge_dfs(df_2019_2020_rating_counts, count_2021)
+df_2019_2020_2021_rating_counts = merge_on_rating(
+    df_2019_2020_rating_counts, count_2021
+)
 
 df_2019_2020_2021_rating_counts = df_2019_2020_2021_rating_counts.sort_index()
 
@@ -254,4 +256,19 @@ plt.xlabel("Year")
 plt.xticks(rotation=360)
 plt.ylabel("Average Rating")
 plt.yticks(y_ticks)
+# plt.show()
+
+# !AVERAGE PRICE DISTRIBUTION BY CAR MAKE
+
+make_price_df = pd.DataFrame(cars_df.groupby("make")["price"].mean())
+
+y_ticks = get_ticks(2500, make_price_df["price"], min_0=False)
+
+print(make_price_df)
+
+make_price_df.plot(kind="line")
+plt.title("Average Price by Car Make")
+plt.ylabel("Average Price")
+plt.yticks(y_ticks)
+plt.xlabel("Make")
 plt.show()
