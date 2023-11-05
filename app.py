@@ -256,7 +256,6 @@ plt.xlabel("Year")
 plt.xticks(rotation=360)
 plt.ylabel("Average Rating")
 plt.yticks(y_ticks)
-# plt.show()
 
 # !AVERAGE PRICE DISTRIBUTION BY CAR MAKE
 
@@ -264,11 +263,28 @@ make_price_df = pd.DataFrame(cars_df.groupby("make")["price"].mean())
 
 y_ticks = get_ticks(2500, make_price_df["price"], min_0=False)
 
-print(make_price_df)
+print(make_price_df, end="\n\n")
 
 make_price_df.plot(kind="line")
 plt.title("Average Price by Car Make")
 plt.ylabel("Average Price")
 plt.yticks(y_ticks)
 plt.xlabel("Make")
+
+# !AVERAGE RATING BY CAR NAME
+
+cars_reviews_df = pd.merge(cars_df, reviews_df, how="inner", on="name")
+
+name_rating_df = pd.DataFrame(cars_reviews_df.groupby("name")["rating"].mean())
+
+print(name_rating_df)
+
+y_ticks = get_ticks(1, name_rating_df["rating"], min_0=False)
+# input(name_rating_df)
+name_rating_df.plot(kind="bar")
+plt.title("Average Rating by Car Name")
+plt.xlabel("Car Name")
+plt.xticks(rotation=30)
+plt.ylabel("Average Rating")
+plt.yticks(y_ticks)
 plt.show()
