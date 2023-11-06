@@ -245,9 +245,9 @@ make_year_ratings_pivot = make_year_ratings_df.pivot(
     index="year", columns="make", values="rating"
 )
 
-print(make_year_ratings_pivot)
+print(make_year_ratings_pivot, end="\n\n")
 
-y_ticks = get_ticks(1, make_year_ratings_pivot.values, True)
+y_ticks = get_ticks(0.5, make_year_ratings_pivot.values, True)
 
 make_year_ratings_pivot.plot(kind="bar")
 plt.legend(loc="upper left")
@@ -277,14 +277,76 @@ cars_reviews_df = pd.merge(cars_df, reviews_df, how="inner", on="name")
 
 name_rating_df = pd.DataFrame(cars_reviews_df.groupby("name")["rating"].mean())
 
-print(name_rating_df)
+print(name_rating_df, end="\n\n")
 
-y_ticks = get_ticks(1, name_rating_df["rating"], min_0=False)
+y_ticks = get_ticks(0.5, name_rating_df["rating"], min_0=False)
 # input(name_rating_df)
 name_rating_df.plot(kind="bar")
 plt.title("Average Rating by Car Name")
 plt.xlabel("Car Name")
-plt.xticks(rotation=30)
+plt.xticks(rotation=10)
 plt.ylabel("Average Rating")
 plt.yticks(y_ticks)
+
+# !AVERAGE WORD COUNT BY CAR AND RATING
+
+cars_reviews_df = pd.merge(cars_df, reviews_df, on="name", how="inner")
+
+wordcount_car_rating_df = pd.DataFrame(
+    cars_reviews_df.groupby(["name", "rating"])["word_count"].mean()
+)
+
+wordcount_car_rating_df = wordcount_car_rating_df.reset_index().sort_values(
+    ["name", "rating"]
+)
+
+wordcount_car_rating_pivot = (
+    pd.pivot(
+        wordcount_car_rating_df, index="name", columns="rating", values="word_count"
+    )
+    .fillna(0)
+    .astype(int)
+)
+
+print(wordcount_car_rating_pivot, end="\n\n")
+
+y_ticks = get_ticks(1, wordcount_car_rating_pivot.values)
+
+wordcount_car_rating_pivot.plot(kind="bar")
+plt.xlabel("Name")
+plt.xticks(rotation=10)
+plt.ylabel("Word Count")
+plt.yticks(y_ticks)
+plt.title("Word Count by Name and Rating")
+plt.legend(title="Rating")
+
+# !AVERAGE PRICE BY NAME AND RATING
+
+cars_reviews_df = pd.merge(cars_df, reviews_df, on="name", how="inner")
+
+price_name_rating_df = pd.DataFrame(
+    cars_reviews_df.groupby(["name", "rating"])["price"].mean()
+)
+
+price_name_rating_df = price_name_rating_df.reset_index().sort_values(
+    ["name", "rating"]
+)
+
+price_name_rating_pivot = (
+    pd.pivot(price_name_rating_df, index="name", columns="rating", values="price")
+    .fillna(0)
+    .astype(int)
+)
+
+print(price_name_rating_pivot, end="\n\n")
+
+y_ticks = get_ticks(5_000, price_name_rating_pivot.values)
+
+price_name_rating_pivot.plot(kind="bar")
+plt.xlabel("Name")
+plt.xticks(rotation=10)
+plt.ylabel("Price")
+plt.yticks(y_ticks)
+plt.title("Price by Car and Rating")
+plt.legend(title="Rating")
 plt.show()
